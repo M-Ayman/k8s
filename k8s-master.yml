@@ -1,0 +1,7 @@
+- hosts: k8smaster
+  user: ansible
+  become: yes
+  connection: ssh
+  gather_facts: yes
+  roles:
+    - k8s-master

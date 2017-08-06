@@ -1,0 +1,61 @@
+# Powered By Ansible
+
+# --------------Install & configure etcd"on master/slave--------------------
+
+- name: Install {{ pkg_name }} for master
+  package: name={{ pkg_name }} state=latest
+
+- name: create a local user and group that can own etcd packages to secuirty
+  shell: /usr/sbin/useradd -U -d /var/lib/etcd -m -c "etcd user" -s /sbin/nologin etcd
+  ignore_errors: yes
+- name: Copy etcd
+  copy:
+    src: "files/{{ ansible_os_family }}/etcd.conf"
+    dest: /etc/etcd/etcd.conf 
+- name: start etcd
+  service: name=etcd state=started
+
+
+
+#-----------Configure flanneld "on master/slave"-----------------
+
+- name: make sure docker stop 
+  service: name=docker state=stopped
+  ignore_errors: yes
+  tags: flannel
+- name: remove docker0 berfore start flannel if exsist
+  command: /sbin/ip link delete docker0
+  ignore_errors: yes
+- name: Copy flannel-config.json
+  copy:
+    src: "files/{{ ansible_os_family }}/flannel-config.json"
+    dest: "/etc/sysconfig/"
+- name: configure etcd to hold the network overlay configuration on master
+  shell: /bin/etcdctl mkdir /kube-centos/network  && /bin/etcdctl set /kube-centos/network/config < "/etc/sysconfig/flannel-config.json"
+  ignore_errors: yes
+- name: Copy flanneld
+  copy:
+    src: "files/{{ ansible_os_family }}/flanneld"
+    dest:  "/etc/sysconfig/flanneld"
+
+#-----------------------install Kubernetes master package----------------
+
+- name: copy config file
+  copy:
+    src: "files/{{ ansible_os_family }}/config"
+    dest: "/etc/kubernetes/config" 
+
+- name: Copy apiserver
+  copy:
+    src: "files/{{ ansible_os_family }}/apiserver"
+    dest: "/etc/kubernetes/apiserver"
+
+
+- name: restart master services 
+  service: name={{ item }} state=restarted enabled=yes
+  with_items:
+    - etcd
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+    - flanneld  
