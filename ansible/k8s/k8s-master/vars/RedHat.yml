@@ -1,0 +1,12 @@
+pkg_name:
+  - etcd
+  - flannel
+  - kubernetes-master 
+  - kubernetes-client
+
+sv_name:
+  - etcd
+  - kube-apiserver
+  - kube-controller-manager
+  - kube-scheduler
+  - flanneld

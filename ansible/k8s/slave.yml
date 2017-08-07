@@ -1,0 +1,9 @@
+- hosts: k8sminion
+  user: ansible
+  become: yes
+  become_method: sudo
+  serial: 3
+  connection: ssh
+  gather_facts: yes
+  roles:
+    - k8s-slave

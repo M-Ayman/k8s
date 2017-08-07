@@ -1,0 +1,10 @@
+pkg_name:
+  - etcd
+  - flannel
+  - kubernetes-node
+
+sv_name:
+  - kube-proxy
+  - kubelet
+  - docker    
+  - flanneld
